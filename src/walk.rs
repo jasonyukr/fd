@@ -333,6 +333,9 @@ impl WorkerState {
 
         let mut builder = OverrideBuilder::new(first_path);
 
+        // ignore "**/.git/*"
+        builder.add("!**/.git/*").unwrap();
+
         for pattern in &config.exclude_patterns {
             builder
                 .add(pattern)

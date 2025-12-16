@@ -252,7 +252,7 @@ impl<'a, W: Write> ReceiverBuffer<'a, W> {
     fn print(&mut self, entry: &DirEntry) -> Result<(), ExitCode> {
         if let Err(e) = output::print_entry(&mut self.stdout, entry, self.config) {
             if e.kind() != ::std::io::ErrorKind::BrokenPipe {
-                print_error(format!("Could not write to output: {}", e));
+                print_error(format!("Could not write to output: {e}"));
                 return Err(ExitCode::GeneralError);
             }
         }
@@ -379,10 +379,7 @@ impl WorkerState {
                     match result {
                         Some(ignore::Error::Partial(_)) => (),
                         Some(err) => {
-                            print_error(format!(
-                                "Malformed pattern in global ignore file. {}.",
-                                err
-                            ));
+                            print_error(format!("Malformed pattern in global ignore file. {err}."));
                         }
                         None => (),
                     }
@@ -395,7 +392,7 @@ impl WorkerState {
             match result {
                 Some(ignore::Error::Partial(_)) => (),
                 Some(err) => {
-                    print_error(format!("Malformed pattern in custom ignore file. {}.", err));
+                    print_error(format!("Malformed pattern in custom ignore file. {err}."));
                 }
                 None => (),
             }
@@ -483,7 +480,7 @@ impl WorkerState {
                                 && path
                                     .symlink_metadata()
                                     .ok()
-                                    .map_or(false, |m| m.file_type().is_symlink()) =>
+                                    .is_some_and(|m| m.file_type().is_symlink()) =>
                         {
                             DirEntry::broken_symlink(path)
                         }

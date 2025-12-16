@@ -298,7 +298,7 @@ This is the output of `fd -h`. To see the full set of command-line options, use 
 also includes a much more detailed help text.
 
 ```
-Usage: fd [OPTIONS] [pattern] [path]...
+Usage: fd [OPTIONS] [pattern [path...]]
 
 Arguments:
   [pattern]  the search pattern (a regular expression, unless '--glob' is used; optional)
@@ -334,6 +334,8 @@ Options:
   -h, --help                       Print help (see more with '--help')
   -V, --version                    Print version
 ```
+
+Note that options can be given after the pattern and/or path as well.
 
 ## Benchmark
 
@@ -387,6 +389,11 @@ use the options `-u`/`--unrestricted` option (or `-HI` to enable hidden and igno
 ``` bash
 > fd -u …
 ```
+
+Also remember that by default, `fd` only searches based on the filename and
+doesn't compare the pattern to the full path. If you want to search based on the
+full path (similar to the `-path` option of `find`) you need to use the `--full-path`
+(or `-p`) option.
 
 ### Colorized output
 
@@ -569,7 +576,7 @@ apk add fd
 
 ### On Arch Linux
 
-You can install [the fd package](https://www.archlinux.org/packages/community/x86_64/fd/) from the official repos:
+You can install [the fd package](https://www.archlinux.org/packages/extra/x86_64/fd/) from the official repos:
 ```
 pacman -S fd
 ```
@@ -610,7 +617,7 @@ You can install [the fd package](https://github.com/getsolus/packages/tree/main/
 eopkg install fd
 ```
 
-### On RedHat Enterprise Linux 8/9 (RHEL8/9), Almalinux 8/9, EuroLinux 8/9 or Rocky Linux 8/9
+### On RedHat Enterprise Linux (RHEL) 8/9/10, Almalinux 8/9/10, EuroLinux 8/9 or Rocky Linux 8/9/10
 
 You can install [the `fd` package](https://copr.fedorainfracloud.org/coprs/tkbcopr/fd/) from Fedora Copr.
 

@@ -17,7 +17,6 @@ use std::env;
 use std::io::IsTerminal;
 use std::path::Path;
 use std::sync::Arc;
-use std::time;
 
 use anyhow::{anyhow, bail, Context, Result};
 use clap::{CommandFactory, Parser};
@@ -37,18 +36,21 @@ use crate::regex_helper::{pattern_has_uppercase_char, pattern_matches_strings_wi
 
 // We use jemalloc for performance reasons, see https://github.com/sharkdp/fd/pull/481
 // FIXME: re-enable jemalloc on macOS, see comment in Cargo.toml file for more infos
+// This has to be kept in sync with the Cargo.toml file section that declares a
+// dependency on tikv-jemallocator.
 #[cfg(all(
     not(windows),
     not(target_os = "android"),
     not(target_os = "macos"),
     not(target_os = "freebsd"),
     not(target_os = "openbsd"),
+    not(target_os = "illumos"),
     not(all(target_env = "musl", target_pointer_width = "32")),
     not(target_arch = "riscv64"),
     feature = "use-jemalloc"
 ))]
 #[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static ALLOC: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 // vivid --color-mode 8-bit generate molokai
 const DEFAULT_LS_COLORS: &str = "
@@ -63,7 +65,7 @@ fn main() {
             exit_code.exit();
         }
         Err(err) => {
-            eprintln!("[fd error]: {:#}", err);
+            eprintln!("[fd error]: {err:#}");
             ExitCode::GeneralError.exit();
         }
     }
@@ -429,10 +431,9 @@ fn determine_ls_command(colored_output: bool) -> Result<Vec<&'static str>> {
 }
 
 fn extract_time_constraints(opts: &Opts) -> Result<Vec<TimeFilter>> {
-    let now = time::SystemTime::now();
     let mut time_constraints: Vec<TimeFilter> = Vec::new();
     if let Some(ref t) = opts.changed_within {
-        if let Some(f) = TimeFilter::after(&now, t) {
+        if let Some(f) = TimeFilter::after(t) {
             time_constraints.push(f);
         } else {
             return Err(anyhow!(
@@ -442,7 +443,7 @@ fn extract_time_constraints(opts: &Opts) -> Result<Vec<TimeFilter>> {
         }
     }
     if let Some(ref t) = opts.changed_before {
-        if let Some(f) = TimeFilter::before(&now, t) {
+        if let Some(f) = TimeFilter::before(t) {
             time_constraints.push(f);
         } else {
             return Err(anyhow!(
